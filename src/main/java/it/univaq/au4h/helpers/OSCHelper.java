@@ -26,9 +26,9 @@ public class OSCHelper{
 
 	private Gestures gestures;
 
-	private Boolean delay=false;
-	private Boolean reverb=false;
-	private Boolean fuzz=false;
+	private boolean delay=false;
+	private boolean reverb=false;
+	private boolean fuzz=false;
 
 	private final String ROOT = "/kinect";
 
@@ -60,10 +60,7 @@ public class OSCHelper{
 	public void sendOSCBundle(Gestures gest) {
 		this.gestures=gest;
 		bundle=new OSCBundle();
-		if(this.bindEffectToGesture(GestureName.OPEN_LEGS, ROOT+REVERB+CONTROL, ROOT+REVERB+WET)||
-				this.bindEffectToGesture(GestureName.LEAN_BACK, null, ROOT+REVERB+ROOMSIZE)||
-				this.bindEffectToGesture(GestureName.NECK_CAMERA, ROOT+DELAY+CONTROL, ROOT+DELAY+FEEDBACK)||
-				this.bindEffectToGesture(GestureName.RH_UP, ROOT+FUZZ, null)){
+		if(this.bindEffectsToGestures()){
 			try {
 				portOut.send(bundle);
 			} catch (IOException e) {
@@ -72,53 +69,58 @@ public class OSCHelper{
 		}
 	}
 
-	/**
-	 * 
-	 * @param control
-	 * @param path
-	 */
+	private boolean bindEffectsToGestures() {
+		return (this.bindEffectToGesture(GestureName.OPEN_LEGS, ROOT+REVERB+CONTROL, ROOT+REVERB+WET)||
+				this.bindEffectToGesture(GestureName.LSHOULDER_UP, null, ROOT+REVERB+ROOMSIZE)||
+				this.bindEffectToGesture(GestureName.LHAND_TO_CAMERA, ROOT+DELAY+CONTROL, ROOT+DELAY+FEEDBACK)||
+				this.bindEffectToGesture(GestureName.RHAND_UP, ROOT+FUZZ, null));
+	}
+	
+	/*
 	private void addControlMessageToBundle(boolean control, String path) {
 		OSCMessage msg=new OSCMessage(path);
 		msg.addArgument(control);
 		bundle.addPacket(msg);
 	}
 
-	/**
-	 * 
-	 * @param measure
-	 * @param path
-	 */
 	private void addMeasureMessageToBundle(float measure, String path) {
 		OSCMessage msg=new OSCMessage(path);
 		msg.addArgument(measure);
 		bundle.addPacket(msg);
 	}
+	
+	*/
+	
+	private void addMessageToBundle(Object value, String path) {
+		OSCMessage msg=new OSCMessage(path);
+		msg.addArgument(value);
+		bundle.addPacket(msg);
+	}
 
 	private boolean bindEffectToGesture(GestureName gn, String controlPath, String measurePath){
 		boolean bundleModified=false;
-		if(gestures.isEventActive(gn)) {
-			float measure=gestures.getMeasureFromEvent(gn);
+		if(gestures.isGestureActive(gn)) {
+			float measure=gestures.getMeasureFromGesture(gn);
 			if(controlPath!= null){
-				if(!checkEffect(gn)) {
+				if(!checkEffect(gn) || gn.equals(GestureName.RHAND_UP)) {
 					this.switchEffect(gn, true);
-					this.addControlMessageToBundle(this.checkEffect(gn), controlPath);
+					this.addMessageToBundle(this.checkEffect(gn), controlPath);
 					bundleModified = true;
 				}
 			}
 
 			if(measurePath!= null){
-				this.addMeasureMessageToBundle(measure, measurePath);
+				this.addMessageToBundle(measure, measurePath);
 				bundleModified = true;
 			}
 
 		}
-
 		else{
 
 			if(controlPath!=null) {
-				if(checkEffect(gn) && !gn.equals(GestureName.RH_UP)) {
+				if(checkEffect(gn) && !gn.equals(GestureName.RHAND_UP)) {
 					switchEffect(gn, false);
-					this.addControlMessageToBundle(false, controlPath);
+					this.addMessageToBundle(false, controlPath);
 					bundleModified = true;
 				}
 			}
@@ -128,11 +130,11 @@ public class OSCHelper{
 
 	
 	private void switchEffect(GestureName gn, boolean value) {
-		if(gn.equals(GestureName.NECK_CAMERA))
+		if(gn.equals(GestureName.LHAND_TO_CAMERA))
 			switchDelay(value);
 		
 		
-		if(gn.equals(GestureName.RH_UP))
+		if(gn.equals(GestureName.RHAND_UP))
 			switchFuzz();
 		
 		if(gn.equals(GestureName.OPEN_LEGS))
@@ -140,11 +142,11 @@ public class OSCHelper{
 	}
 	
 	private boolean checkEffect(GestureName gn) {
-		if(gn.equals(GestureName.RH_UP))
+		if(gn.equals(GestureName.RHAND_UP))
 			return getFuzz();
 		
 		
-		if(gn.equals(GestureName.NECK_CAMERA))
+		if(gn.equals(GestureName.LHAND_TO_CAMERA))
 			return getDelay();
 		
 		if(gn.equals(GestureName.OPEN_LEGS))
@@ -154,38 +156,34 @@ public class OSCHelper{
 		
 	}
 	
-	public void switchDelay(boolean value) {
+	private void switchDelay(boolean value) {
 		delay=value;
 		
 	}
 
-	public void switchReverb(boolean value) {
+	private void switchReverb(boolean value) {
 	reverb=value;
 		
 	}
 
-	public void switchFuzz() {
+	private void switchFuzz() {
 		if(!fuzz)
 			fuzz=true;
 		else fuzz=false;
 		
 	}
 
-	public Boolean getDelay() {
+	private boolean getDelay() {
 		return delay;
 	}
 
-	public Boolean getReverb() {
+	private boolean getReverb() {
 		return reverb;
 	}
 
-	public Boolean getFuzz() {
+	private boolean getFuzz() {
 		return fuzz;
 	}
 	
-	
-
-
 }
-
 

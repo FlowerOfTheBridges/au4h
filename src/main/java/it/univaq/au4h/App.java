@@ -8,14 +8,13 @@ import java.net.UnknownHostException;
 import javax.swing.JFrame;
 
 import org.openni.GeneralException;
-import org.openni.StatusException;
+
 
 import it.univaq.au4h.controllers.MainController;
 
 public class App 
 {
 	private static MainController controller;
-	private static boolean isRunning=true;
 
 	public static void main( String[] args )
 	{
@@ -27,7 +26,7 @@ public class App
 			frame.addKeyListener(new KeyListener(){
 				public void keyPressed(KeyEvent arg0) {
 					if(arg0.getKeyCode()==KeyEvent.VK_ESCAPE)
-						isRunning=false;
+						controller.stop();
 				}
 
 				public void keyReleased(KeyEvent arg0) {
@@ -46,7 +45,7 @@ public class App
 
 			frame.pack();
 			frame.setVisible(true);
-			controller.run(isRunning);
+			controller.run();
 		} 
 		catch (SocketException e) {
 			e.printStackTrace();

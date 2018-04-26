@@ -19,6 +19,7 @@ public class MainController {
 	private NIHelper niHelper;
 	private DrawHelper drawHelper;
 	private OSCHelper oscHelper;
+	private boolean isRunning=true;
 
 	public MainController() throws GeneralException, SocketException, UnknownHostException {
 
@@ -37,7 +38,7 @@ public class MainController {
 	 * whenever the context is updated.
 	 * @throws StatusException 
 	 */
-	public void run(boolean isRunning) throws StatusException{
+	public void run() throws StatusException{
 
 		while (isRunning) {
 
@@ -56,6 +57,10 @@ public class MainController {
 	public Component getComponent() {
 		return drawHelper;
 	}
+	
+	public void stop() {
+		this.isRunning=false;
+	}
 
 	private void update() throws StatusException{
 		int[] userIDs = niHelper.getUsers();   // there may be many users in the scene
@@ -66,7 +71,7 @@ public class MainController {
 			if (niHelper.isUserTracking(userID))  
 				try {
 					niHelper.updateJoints(userID);
-					Gestures userGestures=niHelper.checkUserEvents(userID);
+					Gestures userGestures=niHelper.checkUserGestures(userID);
 					if(userGestures!=null)
 						oscHelper.sendOSCBundle(userGestures);
 				} catch (StatusException e) {

@@ -18,15 +18,15 @@ public class Gestures {
 
 
 
-	public float getMeasureFromEvent(GestureName gn) {
+	public float getMeasureFromGesture(GestureName gn) {
 		return gestures.get(gn);
 	}
 
-	public void addMeasureToEvent(GestureName event, float measure) {
+	public void addMeasureToGesture(GestureName event, float measure) {
 		gestures.put(event, measure);
 	}
 
-	public boolean isEventActive(GestureName gn) {
+	public boolean isGestureActive(GestureName gn) {
 
 		if(gestures.get(gn)!=0f)
 			return true;
@@ -34,7 +34,7 @@ public class Gestures {
 
 	}
 
-	public void setEventNull(GestureName event) {
+	public void setGestureNull(GestureName event) {
 		gestures.put(event, 0f);
 	}
 

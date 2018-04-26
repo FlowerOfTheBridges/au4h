@@ -117,7 +117,7 @@ public class NIHelper
 	 * @param userID
 	 * @return
 	 */
-	public Gestures checkUserEvents(int userID) {
+	public Gestures checkUserGestures(int userID) {
 		return this.skeletonGestureHelper.checkGests(userID);
 	}
 	
@@ -125,16 +125,8 @@ public class NIHelper
 	 * 
 	 * @return
 	 */
-	public int getWidth() {
+	public int getDepthWidth() {
 		return depthMd.getFullXRes();
-	}
-	
-	/**
-	 * 
-	 * @return
-	 */
-	public int getHeigth() {
-		return depthMd.getFullYRes();
 	}
 	
 	/**
@@ -143,6 +135,14 @@ public class NIHelper
 	 */
 	public void startGeneratingData() throws StatusException{
 		this.context.startGeneratingAll();
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public int getDepthHeigth() {
+		return depthMd.getFullYRes();
 	}
 	
 	/**

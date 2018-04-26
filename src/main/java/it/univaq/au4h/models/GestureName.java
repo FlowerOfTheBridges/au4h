@@ -2,8 +2,7 @@ package it.univaq.au4h.models;
 
 public enum GestureName {
 	OPEN_LEGS, 
-	LEAN_BACK,   
-	RH_UP,
-	NECK_CAMERA;
-
+	LSHOULDER_UP,   
+	RHAND_UP,
+	LHAND_TO_CAMERA;
 }

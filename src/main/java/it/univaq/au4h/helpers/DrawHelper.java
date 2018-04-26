@@ -40,8 +40,8 @@ public class DrawHelper extends Component{
 		
 		histogram = new float[10000];
 
-		width = niHelper.getWidth();
-		height = niHelper.getHeigth();
+		width = niHelper.getDepthWidth();
+		height = niHelper.getDepthHeigth();
 
 		imgbytes = new byte[width*height*3];
 	}
