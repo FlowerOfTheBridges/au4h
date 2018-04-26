@@ -12,7 +12,7 @@ import org.openni.SkeletonJoint;
 import org.openni.SkeletonJointPosition;
 import org.openni.StatusException;
 
-import it.univaq.au4h.utility.EventsCapability;
+import it.univaq.au4h.models.Gestures;
 
 public class CalibrationCompleteObserver implements IObserver<CalibrationProgressEventArgs>
 {
@@ -20,14 +20,14 @@ public class CalibrationCompleteObserver implements IObserver<CalibrationProgres
 	private PoseDetectionCapability poseDetectionCap;
 	private String calibPose;
 	private HashMap<Integer, HashMap<SkeletonJoint, SkeletonJointPosition>> joints;
-	private HashMap<Integer, EventsCapability> events;
+	private HashMap<Integer, Gestures> gestures;
 	
-	public CalibrationCompleteObserver(SkeletonCapability sCap, PoseDetectionCapability pCap, String cPose,HashMap<Integer, HashMap<SkeletonJoint, SkeletonJointPosition>> j,HashMap<Integer, EventsCapability> e) {
+	public CalibrationCompleteObserver(SkeletonCapability sCap, PoseDetectionCapability pCap, String cPose,HashMap<Integer, HashMap<SkeletonJoint, SkeletonJointPosition>> j,HashMap<Integer, Gestures> gestures) {
 		this.skeletonCap=sCap;
 		this.poseDetectionCap=pCap;
 		this.calibPose=cPose;
 		this.joints=j;
-		this.events=e;
+		this.gestures=gestures;
 	}
 	
 	public void update(IObservable<CalibrationProgressEventArgs> observable, CalibrationProgressEventArgs args)
@@ -40,7 +40,7 @@ public class CalibrationCompleteObserver implements IObserver<CalibrationProgres
 				System.out.println("starting tracking "  +args.getUser());
 				this.skeletonCap.startTracking(args.getUser());
 				this.joints.put(new Integer(args.getUser()), new HashMap<SkeletonJoint, SkeletonJointPosition>());
-				this.events.put(new Integer(args.getUser()), new EventsCapability());
+				this.gestures.put(new Integer(args.getUser()), new Gestures());
 			}
 			else if (args.getStatus() != CalibrationProgressStatus.MANUAL_ABORT)
 			{

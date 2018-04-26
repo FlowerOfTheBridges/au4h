@@ -11,10 +11,9 @@ import org.openni.StatusException;
 import it.univaq.au4h.helpers.DrawHelper;
 import it.univaq.au4h.helpers.NIHelper;
 import it.univaq.au4h.helpers.OSCHelper;
-import it.univaq.au4h.helpers.OSCHelperImpl;
-import it.univaq.au4h.utility.EventsCapability;
+import it.univaq.au4h.models.Gestures;
 
-@SuppressWarnings("serial")
+
 public class MainController {
 
 	private NIHelper niHelper;
@@ -24,28 +23,27 @@ public class MainController {
 	public MainController() throws GeneralException, SocketException, UnknownHostException {
 
 		niHelper = new NIHelper();
-		
+
 		drawHelper = new DrawHelper(niHelper);
-		
-		oscHelper = new OSCHelperImpl();
+
+		oscHelper = new OSCHelper();
 
 		niHelper.startGeneratingData();
 
 	}
 
 	/**
-	 * update and display the users-coloured depth image and skeletons
+	 * update and display the users-colored depth image and skeletons
 	 * whenever the context is updated.
 	 * @throws StatusException 
 	 */
-	public void run() throws StatusException{
-		boolean isRunning = true;
+	public void run(boolean isRunning) throws StatusException{
 
 		while (isRunning) {
 
 			niHelper.waitUpdates();
 			this.update();
-			
+
 			drawHelper.updateDepth();
 			drawHelper.repaint();
 		}
@@ -58,21 +56,19 @@ public class MainController {
 	public Component getComponent() {
 		return drawHelper;
 	}
-	
-	public void update() throws StatusException
-	{
 
+	private void update() throws StatusException{
 		int[] userIDs = niHelper.getUsers();   // there may be many users in the scene
 		for (int i = 0; i < userIDs.length; ++i) {
 			int userID = userIDs[i];
-			if(niHelper.isUserCalibrating(userID))
+			if(niHelper.isUserCalibrating(userID)) // test to avoid occassional crashes
 				continue;
-			if (niHelper.isUserTracking(userID))  // test to avoid occassional crashes
+			if (niHelper.isUserTracking(userID))  
 				try {
 					niHelper.updateJoints(userID);
-					EventsCapability userEvCap=niHelper.checkUserEvents(userID);
-					if(userEvCap!=null)
-						oscHelper.sendOSCBundle(userEvCap);
+					Gestures userGestures=niHelper.checkUserEvents(userID);
+					if(userGestures!=null)
+						oscHelper.sendOSCBundle(userGestures);
 				} catch (StatusException e) {
 					e.printStackTrace();
 				}

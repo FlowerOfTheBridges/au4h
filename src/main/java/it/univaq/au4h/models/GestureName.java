@@ -1,4 +1,4 @@
-package it.univaq.au4h.utility;
+package it.univaq.au4h.models;
 
 public enum GestureName {
 	OPEN_LEGS, 

@@ -137,7 +137,7 @@ public class DrawHelper extends Component{
 				c = new Color(255-c.getRed(), 255-c.getGreen(), 255-c.getBlue());
 
 				g.setColor(c);
-				if (drawSkeleton && niHelper.getSkeletonCap().isSkeletonTracking(users[i]))	
+				if (drawSkeleton && niHelper.isSkeletonTracking(users[i]))	
 				{
 					niHelper.drawSkeleton(g, users[i]);
 				}
