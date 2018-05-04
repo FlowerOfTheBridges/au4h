@@ -15,11 +15,7 @@ import org.openni.Point3D;
 import org.openni.SkeletonJoint;
 import org.openni.SkeletonJointPosition;
 
-import it.univaq.au4h.models.GestureName;
 import it.univaq.au4h.models.Gestures;
-
-
-
 
 public class SkeletonGestureHelper
 {
@@ -34,7 +30,7 @@ public class SkeletonGestureHelper
 
 	/**
 	 * Checks which gesture have just started or finished, and
-     * eventually add its measure to the user's Gestures.
+	 * eventually add its measure to the user's Gestures.
 	 * @param userID the user to analyze
 	 * @return the Gestures of the analyzed user.
 	 */
@@ -42,16 +38,16 @@ public class SkeletonGestureHelper
 		HashMap<SkeletonJoint, SkeletonJointPosition> skel = userSkels.get(userID);
 		Gestures gestures=userGestures.get(userID);
 		if (skel != null && gestures != null) {
-			guitarHero(skel, gestures);
+			leftArmUp(skel, gestures);
 			rightHandUp(skel, gestures);
 			openLegs(skel, gestures);
-			neckCamera(skel, gestures);
+			leftHandToCamera(skel, gestures);
 		}
 		return this.userGestures.get(userID);
 	} 
 
-	private float distApart3D(Point3D p1, Point3D p2){
-		
+	private float distApart(Point3D p1, Point3D p2){
+
 		float dist = (float) Math.sqrt( 
 				(p1.getX() - p2.getX())*(p1.getX() - p2.getX()) +
 				(p1.getY() - p2.getY())*(p1.getY() - p2.getY()));
@@ -65,25 +61,25 @@ public class SkeletonGestureHelper
 	 * @param p3
 	 * @return 
 	 */
-	private float angleSkelJoints3D(Point3D p1, Point3D p2, Point3D p3){
+	private float angleSkelJoints(Point3D p1, Point3D p2, Point3D p3){
 		javafx.geometry.Point3D vertex = new javafx.geometry.Point3D(p1.getX(), p1.getY(), p1.getZ());
 		javafx.geometry.Point3D aux1 = new javafx.geometry.Point3D(p2.getX(), p2.getY(), p2.getZ());
 		javafx.geometry.Point3D aux2 = new javafx.geometry.Point3D(p3.getX(), p3.getY(), p3.getZ());
 
 		return (float) vertex.angle(aux1, aux2);
-		
+
 	}
 
 
 
-	private void neckCamera(HashMap<SkeletonJoint, SkeletonJointPosition> skel, Gestures gestures){
+	private void leftHandToCamera(HashMap<SkeletonJoint, SkeletonJointPosition> skel, Gestures gestures){
 		Point3D leftHand=getJointPos(skel, SkeletonJoint.LEFT_HAND);
 		Point3D leftShoulder=getJointPos(skel,SkeletonJoint.LEFT_SHOULDER);
 		Point3D rightHand = getJointPos(skel, SkeletonJoint.RIGHT_HAND);
 		if(leftHand!=null && leftShoulder!=null && rightHand!=null){
-			float angle=this.angleSkelJoints3D(leftShoulder, new Point3D(leftHand.getX(),leftHand.getY(),leftShoulder.getZ()), leftHand);
+			float angle=this.angleSkelJoints(leftShoulder, new Point3D(leftHand.getX(),leftHand.getY(),leftShoulder.getZ()), leftHand);
 			boolean condition=leftHand.getZ()<rightHand.getZ()-(rightHand.getZ())/10;
-			this.storeGesture(condition,GestureName.LHAND_TO_CAMERA,angle,gestures);
+			this.storeGesture(condition,Gestures.Name.LHAND_TO_CAMERA,angle,gestures);
 		}	
 	}
 
@@ -100,24 +96,24 @@ public class SkeletonGestureHelper
 		Point3D shoulderLPt = getJointPos(skel, SkeletonJoint.LEFT_SHOULDER);
 
 		if((lkPt!=null) && (rkPt!=null) && torso!=null && shoulderRPt!=null  && shoulderLPt!=null) {
-			float degree=angleSkelJoints3D(torso,lkPt,rkPt);
-			boolean condition=distApart3D(lkPt,rkPt)>distApart3D(shoulderRPt, shoulderLPt);
-			this.storeGesture(condition, GestureName.OPEN_LEGS, degree, gestures);
+			float degree=angleSkelJoints(torso,lkPt,rkPt);
+			boolean condition=distApart(lkPt,rkPt)>distApart(shoulderRPt, shoulderLPt);
+			this.storeGesture(condition, Gestures.Name.OPEN_LEGS, degree, gestures);
 		}
-		
+
 	}
 
 
-	private void guitarHero(HashMap<SkeletonJoint, SkeletonJointPosition> skel, Gestures gestures) {
+	private void leftArmUp(HashMap<SkeletonJoint, SkeletonJointPosition> skel, Gestures gestures) {
 		Point3D lhandPt=getJointPos(skel,SkeletonJoint.LEFT_HAND);
 		Point3D lshoulderPt = getJointPos(skel, SkeletonJoint.NECK);
 		Point3D lhPt=getJointPos(skel, SkeletonJoint.LEFT_HIP);
 		Point3D rhPt=getJointPos(skel, SkeletonJoint.RIGHT_HIP);
 
 		if ((lhandPt!= null) && (lshoulderPt!=null) && (lhPt!=null) && (rhPt!=null)) {
-			float degree=angleSkelJoints3D(lhPt,lhandPt,new Point3D(lhandPt.getX(),lhPt.getY(),lhPt.getZ()));
+			float degree=angleSkelJoints(lhPt,lhandPt,new Point3D(lhandPt.getX(),lhPt.getY(),lhPt.getZ()));
 			boolean condition=lhandPt.getY() < lshoulderPt.getY();
-			this.storeGesture(condition, GestureName.LSHOULDER_UP, degree, gestures);
+			this.storeGesture(condition, Gestures.Name.LSHOULDER_UP, degree, gestures);
 		}
 	}
 
@@ -127,8 +123,8 @@ public class SkeletonGestureHelper
 		if ((rightHandPt != null) && (headPt != null))
 		{
 			boolean condition=rightHandPt.getY() <= headPt.getY();
-			this.storeGesture(condition, GestureName.RHAND_UP, 1f, gestures);
-			
+			this.storeGesture(condition, Gestures.Name.RHAND_UP, 1f, gestures);
+
 		}
 	}  
 
@@ -136,30 +132,14 @@ public class SkeletonGestureHelper
 			SkeletonJoint j)
 	{
 		SkeletonJointPosition pos = skel.get(j);
-		if (pos == null)
+		if (pos == null) //drops all joints not available
 			return null;
 
-		if (pos.getConfidence() <= 0.5)
+		if (pos.getConfidence() <= 0.5) //drops all the joints with low confidence
 			return null;
 
 		return pos.getPosition();
 	}  
-	
-	/*
-	private boolean allJointsActive(HashMap<SkeletonJoint, SkeletonJointPosition> skel) {
-		for(SkeletonJoint j : skel.keySet()) {
-			SkeletonJointPosition pos = skel.get(j);
-			if (pos == null) {
-				return false;
-			}
-			if (pos.getConfidence() <= 0.5) {
-				return false;
-			}
-		}
-			
-		return true;	
-	}
-	*/
 
 	/**
 	 * Associates a measure to its gesture.
@@ -168,27 +148,27 @@ public class SkeletonGestureHelper
 	 * @param measure the measure to be stored
 	 * @param gestures the Gestures object in which save the measure
 	 */
-	private void storeGesture(boolean condition, GestureName gn, float measure, Gestures gestures) {
+	private void storeGesture(boolean condition, Gestures.Name name, float measure, Gestures gestures) {
 		if(condition)
 		{
-			if(measure>0 && gestures.getMeasureFromGesture(gn)!=measure) {
-				gestures.addMeasureToGesture(gn, measure);
-				System.out.println("Misurazione "+gn+": "+measure);
+			if(measure>0 && gestures.getMeasureFromGesture(name)!=measure) {
+				gestures.addMeasureToGesture(name, measure);
+				System.out.println("Misurazione "+name+": "+measure);
 			}
-			
+
 		}
 		else
 		{
-			if(gestures.isGestureActive(gn)){
-				gestures.setGestureNull(gn);
-				System.out.println("Misurazione "+gn+": "+gestures.getMeasureFromGesture(gn));
+			if(gestures.isGestureActive(name)){
+				gestures.setGestureNull(name);
+				System.out.println("Misurazione "+name+": "+gestures.getMeasureFromGesture(name));
 			}
-			
+
 		}
 	}
-	
-	
-	
+
+
+
 }  
 
 

@@ -37,28 +37,27 @@ public class NIHelper
 	private OutArg<ScriptNode> scriptNode;
 	private Context context; // the status of the application
 	
-	private DepthGenerator depthGen; // 
-	private DepthMetaData depthMd;
+	private DepthGenerator depthGen; //depth generator 
+	private DepthMetaData depthMd; //meta-data obtained from the depth generator
 	
-	private UserGenerator userGen;
-	private SceneMetaData userMd;
+	private UserGenerator userGen; //user generator
+	private SceneMetaData userMd; //meta-data obtained from the user generator
 	
-	// attributes 
-	private SkeletonCapability skeletonCap;
-	private PoseDetectionCapability poseDetectionCap;
-	String calibPose = null;
+	private SkeletonCapability skeletonCap; //enable userGenerator to output skeletal of the user 
+	private PoseDetectionCapability poseDetectionCap; //enable userGenerator to recognize if a user is in a specific pose (usually the calibration pose)
+	String calibPose = null; //string containing information of the calibration pose
 	
-	private HashMap<Integer, HashMap<SkeletonJoint, SkeletonJointPosition>> joints;
-	private HashMap<Integer,Gestures> gestures;
+	//maps where the users identifiers are keys related to...
+	private HashMap<Integer, HashMap<SkeletonJoint, SkeletonJointPosition>> joints; //...information about the skeletal
+	private HashMap<Integer,Gestures> gestures; //...the gestures 
 
 	private final String SAMPLE_XML_FILE = "/home/giovanni/Kinect/OpenNI-master/Data/SamplesConfig.xml";
 
-	private SkeletonGestureHelper skeletonGestureHelper; //gesture detector
+	private SkeletonGestureHelper skeletonGestureHelper; //gesture helper for recognize some user's poses.
 	
 	/**
-	 * The class constructor initializes all the attributes in order to
-	 * provide all the data required by the application and give to the 
-	 * device all the information for generating all the kind of data. 
+	 * The class constructor creates the context for the device, in order to
+	 * provide in the application all the information obtained by the sensors.
 	 * @throws GeneralException
 	 */
 	public NIHelper() throws GeneralException {
@@ -66,56 +65,58 @@ public class NIHelper
 			scriptNode = new OutArg<ScriptNode>();
 			context = Context.createFromXmlFile(SAMPLE_XML_FILE, scriptNode); 
 			
-			depthGen = DepthGenerator.create(context);
-            depthMd = depthGen.getMetaData();
+			depthGen = DepthGenerator.create(context); 
+            depthMd = depthGen.getMetaData(); 
 			
-            userGen = UserGenerator.create(context);
-			userMd=userGen.getUserPixels(0);
+            userGen = UserGenerator.create(context); 
+			userMd=userGen.getUserPixels(0); 
 			
-			skeletonCap = userGen.getSkeletonCapability();
+			skeletonCap = userGen.getSkeletonCapability(); 
 			poseDetectionCap = userGen.getPoseDetectionCapability();
 			calibPose = skeletonCap.getSkeletonCalibrationPose();
+			
+			//associates users id's to joints and gestures
 			joints = new HashMap<Integer, HashMap<SkeletonJoint,SkeletonJointPosition>>();
 			gestures=new HashMap<Integer,Gestures>();
 			
+			//add observers for checking user's status
 			userGen.getNewUserEvent().addObserver(new NewUserObserver(skeletonCap,poseDetectionCap,calibPose));
 			userGen.getLostUserEvent().addObserver(new LostUserObserver(joints, gestures));
 			skeletonCap.getCalibrationCompleteEvent().addObserver(new CalibrationCompleteObserver(skeletonCap,poseDetectionCap,calibPose, joints, gestures));
 			poseDetectionCap.getPoseDetectedEvent().addObserver(new PoseDetectedObserver(skeletonCap,poseDetectionCap));
-		
+			//set the profile of the output skeletal
 			skeletonCap.setSkeletonProfile(SkeletonProfile.ALL);
-
+			//creates a SkeletonGestureHelper obj to provide gesture's information to main controller
 			skeletonGestureHelper = new SkeletonGestureHelper(this.joints, this.gestures);
 	}
 	
 	/**
-	 * 
-	 * @return
+
+	 * @return ByteBuffer, where pixels contains information about the users
 	 */
 	public ShortBuffer getSceneData() {
 		return userMd.getData().createShortBuffer();
 	}
 	
 	/**
-	 * 
-	 * @return
+	 * @return ByteBuffer, where pixels contains information about the scene.
 	 */
 	public ShortBuffer getDepthData() {
 		return depthMd.getData().createShortBuffer();
 	}
 	
 	/**
-	 * 
-	 * @return
+	 * Checks wheter if the user's skeletal is in the tracking phase or not.
+	 * @return true or false depending of the tracking status
 	 */
 	public boolean isSkeletonTracking(int user) {
 		return skeletonCap.isSkeletonTracking(user);
 	}
 	
 	/**
-	 * 
-	 * @param userID
-	 * @return
+	 * Method that checks if the user is doing a specific gesture.
+	 * @param userID the user identifier
+	 * @return Gestures object containing information about the specific user.
 	 */
 	public Gestures checkUserGestures(int userID) {
 		return this.skeletonGestureHelper.checkGests(userID);
@@ -130,7 +131,7 @@ public class NIHelper
 	}
 	
 	/**
-	 * 
+	 * Tells all the Production Nodes to start generating data.
 	 * @throws StatusException
 	 */
 	public void startGeneratingData() throws StatusException{
@@ -146,7 +147,7 @@ public class NIHelper
 	}
 	
 	/**
-	 * 
+	 * Tells all the Production Nodes to stop generating data.
 	 * @throws StatusException
 	 */
 	public void stopContext() throws StatusException {
@@ -154,7 +155,8 @@ public class NIHelper
 	}
 	
 	/**
-	 * 
+	 * Wait until a node has new data to provide, then updates all
+	 * the current available nodes.
 	 * @throws StatusException
 	 */
 	public void waitUpdates() throws StatusException {
@@ -163,7 +165,7 @@ public class NIHelper
 	}
 	
 	/**
-	 * 
+	 * Release memory occupied by the class attributes.
 	 */
 	public void releaseContext() {
 		this.context.release();
@@ -246,7 +248,7 @@ public class NIHelper
 	
 	/**
 	 * Method that draw the skeleton line in the frame.
-	 * @param g
+	 * @param g the graphics.
 	 * @param user
 	 */
 	public void drawSkeleton(Graphics g, int user)
@@ -284,11 +286,11 @@ public class NIHelper
 	}
 
 	/**
-	 * 
-	 * @param g
-	 * @param jointHash
-	 * @param joint1
-	 * @param joint2
+	 * Draw a line between two joints.
+	 * @param g the Grapichs object
+	 * @param jointHash the hashmap of skeletonjoint and their position
+	 * @param joint1 the first joint
+	 * @param joint2 the second joint
 	 */
 	private void drawLine(Graphics g, HashMap<SkeletonJoint, SkeletonJointPosition> jointHash, SkeletonJoint joint1, SkeletonJoint joint2)
 	{

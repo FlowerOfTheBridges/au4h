@@ -9,7 +9,6 @@ import javax.swing.JFrame;
 
 import org.openni.GeneralException;
 
-
 import it.univaq.au4h.controllers.MainController;
 
 public class App 
@@ -21,7 +20,7 @@ public class App
 
 		try {
 			controller = new MainController();
-			JFrame frame = new JFrame("OpenNI User Tracker");
+			JFrame frame = new JFrame("au4h");
 
 			frame.addKeyListener(new KeyListener(){
 				public void keyPressed(KeyEvent arg0) {
@@ -41,10 +40,11 @@ public class App
 
 			});
 			frame.add("Center", controller.getComponent());
-
+			
 
 			frame.pack();
 			frame.setVisible(true);
+			
 			controller.run();
 		} 
 		catch (SocketException e) {
