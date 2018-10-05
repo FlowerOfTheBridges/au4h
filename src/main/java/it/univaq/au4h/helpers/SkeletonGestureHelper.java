@@ -23,6 +23,11 @@ public class SkeletonGestureHelper
 	private HashMap<Integer, HashMap<SkeletonJoint, SkeletonJointPosition>> userSkels;
 	private HashMap<Integer, Gestures> userGestures;
 
+	/**
+	 * Creates a new SkeletonGestureHelper.
+	 * @param uSkels the user skeletal
+	 * @param uGests the user Gestures
+	 */
 	public SkeletonGestureHelper(HashMap<Integer, HashMap<SkeletonJoint, SkeletonJointPosition>> uSkels,HashMap<Integer, Gestures> uGests){  
 		this.userSkels = uSkels;
 		this.userGestures=uGests;
@@ -55,11 +60,11 @@ public class SkeletonGestureHelper
 	}  
 
 	/**
-	 * 
-	 * @param p1
-	 * @param p2
-	 * @param p3
-	 * @return 
+	 * Calculates the measure of the angle between three points.
+	 * @param p1 the first point. It's the vertex.
+	 * @param p2 the second point.
+	 * @param p3 the third point.
+	 * @return float corresponding to the angle between the vertex and the other joints 
 	 */
 	private float angleSkelJoints(Point3D p1, Point3D p2, Point3D p3){
 		javafx.geometry.Point3D vertex = new javafx.geometry.Point3D(p1.getX(), p1.getY(), p1.getZ());
@@ -71,14 +76,18 @@ public class SkeletonGestureHelper
 	}
 
 
-
+	/**
+	 * Check if the left hand is heading to camera center.
+	 * @param skel the user skeletal
+	 * @param gestures 
+	 */
 	private void leftHandToCamera(HashMap<SkeletonJoint, SkeletonJointPosition> skel, Gestures gestures){
 		Point3D leftHand=getJointPos(skel, SkeletonJoint.LEFT_HAND);
 		Point3D leftShoulder=getJointPos(skel,SkeletonJoint.LEFT_SHOULDER);
 		Point3D rightHand = getJointPos(skel, SkeletonJoint.RIGHT_HAND);
 		if(leftHand!=null && leftShoulder!=null && rightHand!=null){
 			float angle=this.angleSkelJoints(leftShoulder, new Point3D(leftHand.getX(),leftHand.getY(),leftShoulder.getZ()), leftHand);
-			boolean condition=leftHand.getZ()<rightHand.getZ()-(rightHand.getZ())/10;
+			boolean condition=leftHand.getZ()<rightHand.getZ()-(rightHand.getZ())/20;
 			this.storeGesture(condition,Gestures.Name.LHAND_TO_CAMERA,angle,gestures);
 		}	
 	}
@@ -90,13 +99,17 @@ public class SkeletonGestureHelper
 	 */
 	private void openLegs(HashMap<SkeletonJoint, SkeletonJointPosition> skel, Gestures gestures){
 		Point3D lkPt=getJointPos(skel, SkeletonJoint.LEFT_KNEE);
-		Point3D rkPt=getJointPos(skel, SkeletonJoint.RIGHT_KNEE);
+	    Point3D rkPt=getJointPos(skel, SkeletonJoint.RIGHT_KNEE);
+	    Point3D lhPt=getJointPos(skel, SkeletonJoint.LEFT_HIP);
+	    Point3D rhPt=getJointPos(skel, SkeletonJoint.RIGHT_HIP);
 		Point3D torso=getJointPos(skel, SkeletonJoint.TORSO);
+		
 		Point3D shoulderRPt = getJointPos(skel, SkeletonJoint.RIGHT_SHOULDER);
 		Point3D shoulderLPt = getJointPos(skel, SkeletonJoint.LEFT_SHOULDER);
 
-		if((lkPt!=null) && (rkPt!=null) && torso!=null && shoulderRPt!=null  && shoulderLPt!=null) {
-			float degree=angleSkelJoints(torso,lkPt,rkPt);
+		if(lkPt!=null && rkPt!=null && lhPt!=null && rhPt!=null && shoulderRPt!=null  && shoulderLPt!=null) {
+			Point3D middle=new Point3D((lhPt.getX()+rhPt.getX())/2,(lhPt.getY()+rhPt.getY())/2,(lhPt.getZ()+rhPt.getZ())/2);
+			float degree=angleSkelJoints(middle,lkPt,rkPt);
 			boolean condition=distApart(lkPt,rkPt)>distApart(shoulderRPt, shoulderLPt);
 			this.storeGesture(condition, Gestures.Name.OPEN_LEGS, degree, gestures);
 		}
@@ -104,6 +117,11 @@ public class SkeletonGestureHelper
 	}
 
 
+	/**
+	 * Check if the left arm is upon the left shoulder. 
+	 * @param skel the user skeletal
+	 * @param gestures the Gestures object of the selected user
+	 */
 	private void leftArmUp(HashMap<SkeletonJoint, SkeletonJointPosition> skel, Gestures gestures) {
 		Point3D lhandPt=getJointPos(skel,SkeletonJoint.LEFT_HAND);
 		Point3D lshoulderPt = getJointPos(skel, SkeletonJoint.NECK);
@@ -112,22 +130,46 @@ public class SkeletonGestureHelper
 
 		if ((lhandPt!= null) && (lshoulderPt!=null) && (lhPt!=null) && (rhPt!=null)) {
 			float degree=angleSkelJoints(lhPt,lhandPt,new Point3D(lhandPt.getX(),lhPt.getY(),lhPt.getZ()));
-			boolean condition=lhandPt.getY() < lshoulderPt.getY();
+			boolean condition = lhandPt.getY() < lshoulderPt.getY();
 			this.storeGesture(condition, Gestures.Name.LSHOULDER_UP, degree, gestures);
 		}
 	}
 
+	/**
+	 * Checks if the right hand is upon the neck
+	 * @param skel
+	 * @param gestures
+	 */
 	private void rightHandUp(HashMap<SkeletonJoint, SkeletonJointPosition> skel, Gestures gestures){
 		Point3D rightHandPt = getJointPos(skel, SkeletonJoint.RIGHT_HAND);
 		Point3D headPt = getJointPos(skel, SkeletonJoint.HEAD);
 		if ((rightHandPt != null) && (headPt != null))
 		{
-			boolean condition=rightHandPt.getY() <= headPt.getY();
-			this.storeGesture(condition, Gestures.Name.RHAND_UP, 1f, gestures);
-
+			boolean condition = rightHandPt.getY() <= headPt.getY();
+			if(condition)
+			{
+				if(gestures.getMeasureFromGesture(Gestures.Name.RHAND_UP)!=3f && gestures.getMeasureFromGesture(Gestures.Name.RHAND_UP)!=2f)
+					this.storeGesture(condition, Gestures.Name.RHAND_UP, 1f, gestures);
+				if(gestures.getMeasureFromGesture(Gestures.Name.RHAND_UP)==3f)
+					gestures.addMeasureToGesture(Gestures.Name.RHAND_UP, 2f);
+			}
+			else
+			{
+				if(gestures.getMeasureFromGesture(Gestures.Name.RHAND_UP)==1f)
+					gestures.addMeasureToGesture(Gestures.Name.RHAND_UP, 3f);
+				
+				if(gestures.getMeasureFromGesture(Gestures.Name.RHAND_UP)==2f)
+					this.storeGesture(condition, Gestures.Name.RHAND_UP, 0f, gestures);
+			}
 		}
 	}  
 
+	/**
+	 * Returns the JointPosition 
+	 * @param skel the structure containing the joints.
+	 * @param j the required joint.
+	 * @return Point3D reflecting the joint position in the scene.
+	 */
 	private Point3D getJointPos(HashMap<SkeletonJoint, SkeletonJointPosition> skel, 
 			SkeletonJoint j)
 	{

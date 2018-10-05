@@ -82,40 +82,48 @@ public class OSCHelper{
 	}
 
 	private boolean bindEffectToGesture(Gestures gests, Gestures.Name name, String controlPath, String measurePath){
-		boolean bundleModified=false;
-		if(gests.isGestureActive(name)) {
-			float measure=gests.getMeasureFromGesture(name);
-			if(!checkEffect(name)){
-				this.switchEffect(name, true);
-				if(controlPath!=null) {
-					this.addMessageToBundle(this.checkEffect(name), controlPath);
-					bundleModified = true;
+		boolean bundleModified=false; // boolean value to check if the bundle has been modified
+		if(gests.isGestureActive(name)) { //if the gesture is active...
+			
+			if(!checkEffect(name)){ //if the effect is disable...
+			
+				if(controlPath!=null) { //if the control path is specified...
+					this.switchEffect(name, true); //...then switch it to active!
+					this.addMessageToBundle(this.getEffect(name), controlPath); //...add the effect status to OSC Bundle
+					bundleModified = true; //the bundle has been modified
+				
 				}
 			}
-			if(measurePath!= null){
-				this.addMessageToBundle(measure, measurePath);
-				bundleModified = true;
-			}
-
-		}
-		else{
-
-			if(checkEffect(name)) {
-				switchEffect(name, false);
-				if(controlPath!=null && !name.equals(Gestures.Name.RHAND_UP)) {
-					this.addMessageToBundle(false, controlPath);
-					bundleModified = true;
-				}
-
-				if(measurePath!=null)
-				{
-					this.addMessageToBundle(0f, measurePath);
-					bundleModified = true;
-				}
-
+			
+			if(measurePath!= null){ //if the measure path is specified...
+				
+				float measure=gests.getMeasureFromGesture(name); //...get the measure from him
+				
+				this.addMessageToBundle(measure, measurePath); //...then send the gesture's measure to the measure path
+				bundleModified = true; //the bundle has been modified
 			}
 
 		}
+		else{ // ...the gesture is not active
+
+			if(checkEffect(name)) { // if the effect is enabled...
+				
+				if(controlPath!=null) { //if the control path is specified...
+					this.switchEffect(name, false); //...then switch it off
+					this.addMessageToBundle(this.getEffect(name), controlPath); // ...then send message to control path
+					bundleModified = true; //the bundle has been modified
+				}
+
+				if(measurePath!=null) // if the measure path is specified...
+				{ 
+					this.addMessageToBundle(0f, measurePath); //...send the null measure to OSC Bundle
+					bundleModified = true; //the bundle has been modified
+				}
+
+			}
+
+		}
+		
 		return bundleModified;
 	}
 
@@ -130,6 +138,7 @@ public class OSCHelper{
 		
 		if(name.equals(Gestures.Name.OPEN_LEGS))
 			switchReverbWet(value);
+		
 		if(name.equals(Gestures.Name.LSHOULDER_UP))
 			switchReverbRoomsize(value);
 	}
@@ -138,6 +147,23 @@ public class OSCHelper{
 		if(name.equals(Gestures.Name.RHAND_UP))
 			return getFuzz();
 		
+		if(name.equals(Gestures.Name.LHAND_TO_CAMERA))
+			return getDelay();
+		
+		if(name.equals(Gestures.Name.OPEN_LEGS))
+			return getReverbWet();
+		
+		if(name.equals(Gestures.Name.LSHOULDER_UP))
+			return getReverbRoomsize();
+		
+		return false;
+		
+	}
+	
+	private boolean getEffect(Gestures.Name name) {
+		
+		if(name.equals(Gestures.Name.RHAND_UP))
+			return getFuzz();
 		
 		if(name.equals(Gestures.Name.LHAND_TO_CAMERA))
 			return getDelay();
@@ -166,9 +192,8 @@ public class OSCHelper{
 	}
 
 	private void switchFuzz(boolean value) {
-		if(value)
-			fuzz=!fuzz;
-		trigger=value;
+
+		fuzz = value;
 	}
 
 	private boolean getDelay() {
@@ -184,7 +209,7 @@ public class OSCHelper{
 	}
 
 	private boolean getFuzz() {
-		return trigger;
+		return fuzz;
 	}
 	
 }

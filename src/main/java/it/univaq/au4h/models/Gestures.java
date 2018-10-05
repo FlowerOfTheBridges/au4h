@@ -45,7 +45,13 @@ public class Gestures {
 	 * @param measure the measure 
 	 */
 	public void addMeasureToGesture(Name name, float measure) {
-		gestures.put(name, measure);
+		if(this.isGestureActive(name))
+		{
+			gestures.put(name, measure);
+		}
+		else
+			if(this.getMeasureFromGesture(name)!=measure)
+				gestures.put(name, measure);
 	}
 
 	/**
@@ -56,7 +62,9 @@ public class Gestures {
 	public boolean isGestureActive(Name name) {
 
 		if(gestures.get(name)!=0f)
+		{
 			return true;
+		}
 		else return false;
 
 	}
